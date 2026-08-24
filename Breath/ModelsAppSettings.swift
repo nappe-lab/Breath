@@ -38,8 +38,8 @@ class AppSettings {
     static let durationOptions = [3, 5, 10, 20]
     
     /// Available haptic intensity multipliers
-    static let intensityOptions: [Double] = [0.5, 1.0, 1.5]
-    
+    static let intensityOptions: [Double] = [0.5, 1.0, 3.0]
+
     /// Human-readable label for intensity values
     func intensityLabel(for value: Double) -> String {
         if value == 0.5 {
@@ -47,7 +47,7 @@ class AppSettings {
         } else if value == 1.0 {
             return "1.0× (Normal)"
         } else {
-            return "1.5× (Strong)"
+            return "3.0× (Strong)"
         }
     }
 }

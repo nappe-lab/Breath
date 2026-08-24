@@ -164,9 +164,9 @@ class HapticEngine {
         guard let exercise = sessionExercise, let targetDuration = sessionTargetDuration else { return }
 
         do {
-            let events = sessionEvents(exercise: exercise, targetDuration: targetDuration, resumingAt: offset)
-            guard !events.isEmpty else { return }
-            let pattern = try CHHapticPattern(events: events, parameters: [])
+            let result = sessionEvents(exercise: exercise, targetDuration: targetDuration, resumingAt: offset)
+            guard !result.events.isEmpty else { return }
+            let pattern = try CHHapticPattern(events: result.events, parameterCurves: result.curves)
             let player = try engine?.makeAdvancedPlayer(with: pattern)
             sessionPlayer = player
             try player?.start(atTime: CHHapticTimeImmediate)
@@ -179,15 +179,16 @@ class HapticEngine {
     /// through (`resumingAt` > 0), phases that already fully finished are dropped, and the
     /// phase we're currently inside restarts cleanly from its own beginning rather than trying
     /// to splice into the middle of a ramp/pulse pattern.
-    private func sessionEvents(exercise: BreathingExercise, targetDuration: TimeInterval, resumingAt resumeOffset: TimeInterval = 0) -> [CHHapticEvent] {
+    private func sessionEvents(exercise: BreathingExercise, targetDuration: TimeInterval, resumingAt resumeOffset: TimeInterval = 0) -> (events: [CHHapticEvent], curves: [CHHapticParameterCurve]) {
         var events: [CHHapticEvent] = []
+        var curves: [CHHapticParameterCurve] = []
         var cursor: TimeInterval = 0
 
-        guard !exercise.phases.isEmpty else { return events }
+        guard !exercise.phases.isEmpty else { return (events, curves) }
 
         while cursor < targetDuration {
             for phase in exercise.phases {
-                guard cursor < targetDuration else { return events }
+                guard cursor < targetDuration else { return (events, curves) }
 
                 let remaining = targetDuration - cursor
                 let phaseDuration = min(phase.duration, remaining)
@@ -195,14 +196,22 @@ class HapticEngine {
                 if cursor + phaseDuration > resumeOffset {
                     let localStart = max(cursor, resumeOffset) - resumeOffset
                     events.append(transitionMarkerEvent(at: localStart))
-                    events.append(contentsOf: phaseEvents(for: phase.type, duration: phaseDuration, startTime: localStart + 0.1))
+                    // The marker above claims the first 0.1s of the phase, so the phase's own
+                    // content has to be shortened by the same amount - otherwise it runs right
+                    // up against (and overlaps) the *next* phase's transition marker, garbling
+                    // the handoff (e.g. inhale's ramp still climbing to its peak while the next
+                    // marker tap fires on top of it).
+                    let contentDuration = max(0, phaseDuration - 0.1)
+                    let phaseResult = phaseEvents(for: phase.type, duration: contentDuration, startTime: localStart + 0.1)
+                    events.append(contentsOf: phaseResult.events)
+                    curves.append(contentsOf: phaseResult.curves)
                 }
 
                 cursor += phase.duration
             }
         }
 
-        return events
+        return (events, curves)
     }
 
     // MARK: - Single-shot Playback (foreground-only preview, e.g. exercise library tap test)
@@ -212,7 +221,8 @@ class HapticEngine {
         stopCurrentHaptic()
 
         do {
-            let pattern = try CHHapticPattern(events: phaseEvents(for: phase, duration: duration, startTime: 0), parameters: [])
+            let result = phaseEvents(for: phase, duration: duration, startTime: 0)
+            let pattern = try CHHapticPattern(events: result.events, parameterCurves: result.curves)
             let player = try engine?.makeAdvancedPlayer(with: pattern)
             currentPlayer = player
             try player?.start(atTime: CHHapticTimeImmediate)
@@ -234,9 +244,17 @@ class HapticEngine {
 
     // MARK: - Pattern Creation
 
+    /// hapticIntensity is only valid in 0...1 - the intensityMultiplier (e.g. 3.0× for
+    /// "Strong") is deliberately allowed to push the raw value past 1.0 so quieter events
+    /// saturate at the hardware's true max instead of the boost going to waste; clamp here
+    /// rather than relying on CHHapticEventParameter to do it implicitly.
+    private func clampedIntensity(_ value: Double) -> Float {
+        Float(min(1.0, max(0.0, value)))
+    }
+
     private func transitionMarkerEvent(at startTime: TimeInterval) -> CHHapticEvent {
         // Short, crisp tap to mark transitions
-        let intensity = CHHapticEventParameter(parameterID: .hapticIntensity, value: Float(0.8 * intensityMultiplier))
+        let intensity = CHHapticEventParameter(parameterID: .hapticIntensity, value: clampedIntensity(0.8 * intensityMultiplier))
         let sharpness = CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.8)
 
         return CHHapticEvent(
@@ -247,10 +265,10 @@ class HapticEngine {
         )
     }
 
-    private func phaseEvents(for phase: PhaseType, duration: TimeInterval, startTime: TimeInterval) -> [CHHapticEvent] {
+    private func phaseEvents(for phase: PhaseType, duration: TimeInterval, startTime: TimeInterval) -> (events: [CHHapticEvent], curves: [CHHapticParameterCurve]) {
         switch phase {
         case .inhale:
-            // Gradual intensity ramp from 0.2 to 1.0
+            // Intensity builds clearly from 0.2 to 1.0 across the whole inhale
             return createRampPattern(
                 from: 0.2 * intensityMultiplier,
                 to: 1.0 * intensityMultiplier,
@@ -261,16 +279,17 @@ class HapticEngine {
 
         case .holdFull:
             // Steady pulse every 1.5s
-            return createPulsePattern(
+            let events = createPulsePattern(
                 intensity: 0.5 * intensityMultiplier,
                 sharpness: 0.2,
                 interval: 1.5,
                 duration: duration,
                 startTime: startTime
             )
+            return (events, [])
 
         case .exhale:
-            // Gradual intensity fade from 1.0 to 0.2
+            // Intensity fades clearly from 1.0 to 0.2 across the whole exhale
             return createRampPattern(
                 from: 1.0 * intensityMultiplier,
                 to: 0.2 * intensityMultiplier,
@@ -280,19 +299,19 @@ class HapticEngine {
             )
 
         case .holdEmpty:
-            // Single soft tap at start, then silence
-            let intensity = CHHapticEventParameter(parameterID: .hapticIntensity, value: Float(0.3 * intensityMultiplier))
-            let sharpness = CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.2)
-
-            return [CHHapticEvent(
-                eventType: .hapticTransient,
-                parameters: [intensity, sharpness],
-                relativeTime: startTime
-            )]
+            // Steady pulse every 1.5s, same intensity and cadence as the full hold
+            let events = createPulsePattern(
+                intensity: 0.5 * intensityMultiplier,
+                sharpness: 0.2,
+                interval: 1.5,
+                duration: duration,
+                startTime: startTime
+            )
+            return (events, [])
 
         case .doubleInhale:
             // Two sharp taps followed by a ramp
-            let intensity = CHHapticEventParameter(parameterID: .hapticIntensity, value: Float(0.7 * intensityMultiplier))
+            let intensity = CHHapticEventParameter(parameterID: .hapticIntensity, value: clampedIntensity(0.7 * intensityMultiplier))
             let sharpness = CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.8)
 
             var events = [
@@ -301,24 +320,35 @@ class HapticEngine {
             ]
 
             // Add ramp after the two taps
-            let rampEvents = createRampPattern(
+            let ramp = createRampPattern(
                 from: 0.3 * intensityMultiplier,
                 to: 1.0 * intensityMultiplier,
                 duration: duration - 0.5,
                 sharpness: 0.3,
                 startTime: startTime + 0.5
             )
-            events.append(contentsOf: rampEvents)
-            return events
+            events.append(contentsOf: ramp.events)
+            return (events, ramp.curves)
         }
     }
 
-    /// Create a continuous intensity ramp
-    private func createRampPattern(from startIntensity: Double, to endIntensity: Double, duration: TimeInterval, sharpness: Float, startTime: TimeInterval) -> [CHHapticEvent] {
-        guard duration > 0 else { return [] }
+    /// Create a continuous event whose intensity actually ramps between `startIntensity` and
+    /// `endIntensity` over `duration`, via a CHHapticParameterCurve. A plain CHHapticEvent's
+    /// parameters are fixed for the whole event, so without a curve the "ramp" would just sit
+    /// at a constant `startIntensity` the entire time - a curve is required for a real build/fade.
+    private func createRampPattern(from startIntensity: Double, to endIntensity: Double, duration: TimeInterval, sharpness: Float, startTime: TimeInterval) -> (events: [CHHapticEvent], curves: [CHHapticParameterCurve]) {
+        guard duration > 0 else { return ([], []) }
 
-        // Create a continuous event that we'll modify with a parameter curve
-        let intensityParam = CHHapticEventParameter(parameterID: .hapticIntensity, value: Float(startIntensity))
+        let startValue = clampedIntensity(startIntensity)
+        let endValue = clampedIntensity(endIntensity)
+
+        // hapticIntensityControl curve values below scale (multiply) against this event's
+        // own hapticIntensity rather than replacing it. Authoring the base at a neutral 1.0
+        // means the curve's control points are the actual felt intensity at each instant; if
+        // this were authored at startValue instead, the whole ramp would be scaled down by
+        // it (e.g. inhale's 0.2 base would keep the curve's 1.0 endpoint from ever feeling
+        // stronger than 0.2 - exactly why inhale wasn't reaching exhale's starting level).
+        let intensityParam = CHHapticEventParameter(parameterID: .hapticIntensity, value: 1.0)
         let sharpnessParam = CHHapticEventParameter(parameterID: .hapticSharpness, value: sharpness)
 
         let continuousEvent = CHHapticEvent(
@@ -328,12 +358,16 @@ class HapticEngine {
             duration: duration
         )
 
-        return [continuousEvent]
+        let curve = CHHapticParameterCurve(
+            parameterID: .hapticIntensityControl,
+            controlPoints: [
+                CHHapticParameterCurve.ControlPoint(relativeTime: 0, value: startValue),
+                CHHapticParameterCurve.ControlPoint(relativeTime: duration, value: endValue)
+            ],
+            relativeTime: startTime
+        )
 
-        // Note: For a true smooth ramp, you would use CHHapticPattern's parameterCurves
-        // instead of events array. This simplified version uses a constant intensity.
-        // To implement proper ramping, create the pattern with:
-        // CHHapticPattern(events: [event], parameterCurves: [curve])
+        return ([continuousEvent], [curve])
     }
 
     /// Create a repeating pulse pattern
@@ -341,7 +375,7 @@ class HapticEngine {
         var events: [CHHapticEvent] = []
         var elapsed: TimeInterval = 0
 
-        let intensityParam = CHHapticEventParameter(parameterID: .hapticIntensity, value: Float(intensity))
+        let intensityParam = CHHapticEventParameter(parameterID: .hapticIntensity, value: clampedIntensity(intensity))
         let sharpnessParam = CHHapticEventParameter(parameterID: .hapticSharpness, value: sharpness)
 
         while elapsed < duration {
