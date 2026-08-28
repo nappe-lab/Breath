@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
+		84CF9CC6AED3E3590DC24B7B /* Breath Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Breath Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C0BCDDA92F6DCAE200788F3D /* Breath.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Breath.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -21,6 +22,11 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		7AB485BEB10C44BD96C0CD80 /* Breath Watch App */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Breath Watch App";
+			sourceTree = "<group>";
+		};
 		C0BCDDAB2F6DCAE200788F3D /* Breath */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -32,6 +38,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		AE782550F68E5F073E57F464 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C0BCDDA62F6DCAE200788F3D /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -46,6 +59,7 @@
 			isa = PBXGroup;
 			children = (
 				C0BCDDAB2F6DCAE200788F3D /* Breath */,
+				7AB485BEB10C44BD96C0CD80 /* Breath Watch App */,
 				C0BCDDAA2F6DCAE200788F3D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -54,6 +68,7 @@
 			isa = PBXGroup;
 			children = (
 				C0BCDDA92F6DCAE200788F3D /* Breath.app */,
+				84CF9CC6AED3E3590DC24B7B /* Breath Watch App.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -61,6 +76,26 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		82688C70465FBEE6412135CF /* Breath Watch App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 19090957C7E7A2C9106E3346 /* Build configuration list for PBXNativeTarget "Breath Watch App" */;
+			buildPhases = (
+				D92D8DE6104B8F821141D12A /* Sources */,
+				AE782550F68E5F073E57F464 /* Frameworks */,
+				0EB288629DD17A4B314ACD1D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				7AB485BEB10C44BD96C0CD80 /* Breath Watch App */,
+			);
+			name = "Breath Watch App";
+			productName = "Breath Watch App";
+			productReference = 84CF9CC6AED3E3590DC24B7B /* Breath Watch App.app */;
+			productType = "com.apple.product-type.application";
+		};
 		C0BCDDA82F6DCAE200788F3D /* Breath */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = C0BCDDB42F6DCAE400788F3D /* Build configuration list for PBXNativeTarget "Breath" */;
@@ -77,8 +112,6 @@
 				C0BCDDAB2F6DCAE200788F3D /* Breath */,
 			);
 			name = Breath;
-			packageProductDependencies = (
-			);
 			productName = Breath;
 			productReference = C0BCDDA92F6DCAE200788F3D /* Breath.app */;
 			productType = "com.apple.product-type.application";
@@ -93,6 +126,9 @@
 				LastSwiftUpdateCheck = 2630;
 				LastUpgradeCheck = 2630;
 				TargetAttributes = {
+					82688C70465FBEE6412135CF = {
+						CreatedOnToolsVersion = 26.3;
+					};
 					C0BCDDA82F6DCAE200788F3D = {
 						CreatedOnToolsVersion = 26.3;
 					};
@@ -113,11 +149,19 @@
 			projectRoot = "";
 			targets = (
 				C0BCDDA82F6DCAE200788F3D /* Breath */,
+				82688C70465FBEE6412135CF /* Breath Watch App */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		0EB288629DD17A4B314ACD1D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C0BCDDA72F6DCAE200788F3D /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -135,9 +179,82 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D92D8DE6104B8F821141D12A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
+		33EC0376EC752B70E8C9B01D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7HZ834AK8P;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Breath;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = mikko.Breath;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = mikko.Breath.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = NO;
+				SUPPORTED_PLATFORMS = "watchsimulator watchos";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Release;
+		};
+		4820B5C1A4974CFB9C9906E1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7HZ834AK8P;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Breath;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = mikko.Breath;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = mikko.Breath.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = NO;
+				SUPPORTED_PLATFORMS = "watchsimulator watchos";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Debug;
+		};
 		C0BCDDB22F6DCAE400788F3D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -328,6 +445,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		19090957C7E7A2C9106E3346 /* Build configuration list for PBXNativeTarget "Breath Watch App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4820B5C1A4974CFB9C9906E1 /* Debug */,
+				33EC0376EC752B70E8C9B01D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		C0BCDDA42F6DCAE200788F3D /* Build configuration list for PBXProject "Breath" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
